@@ -3,7 +3,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+const md5 = require("md5");
+// const encrypt = require("mongoose-encryption");
 
 const app = express();
 const port = 3000;
@@ -24,8 +25,8 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
-const secret = process.env.SECRET;
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
+// const secret = process.env.SECRET;
+// userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
 //the 'secret' string was combined with the 'password' and then scrambled into unreadable string that is hard to figure out
 
 const User = new mongoose.model("User", userSchema);
@@ -44,8 +45,8 @@ app.get("/register", function (req, res) {
 
 app.post("/register", async function (req, res) {
   const newUser = new User({
-    email: req.body.username,
-    password: req.body.password,
+    email: md5(req.body.username),
+    password: md5(req.body.password), //turning this to an irreversible hash
   });
 
   try {
@@ -59,8 +60,8 @@ app.post("/register", async function (req, res) {
 });
 
 app.post("/login", async function (req, res) {
-  const username = req.body.username;
-  const password = req.body.password;
+  const username = md5(req.body.username);
+  const password = md5(req.body.password);
 
   try {
     const foundUser = await User.findOne({ email: username });
