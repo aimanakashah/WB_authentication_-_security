@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -23,8 +24,9 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
-const secret = "Thisisourlittlesecret.";
+const secret = process.env.SECRET;
 userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
+//the 'secret' string was combined with the 'password' and then scrambled into unreadable string that is hard to figure out
 
 const User = new mongoose.model("User", userSchema);
 
@@ -48,6 +50,7 @@ app.post("/register", async function (req, res) {
 
   try {
     await newUser.save();
+    //password is encrypt here when the 'save' was called
     res.render("secrets");
   } catch (err) {
     console.log(err);
@@ -61,9 +64,10 @@ app.post("/login", async function (req, res) {
 
   try {
     const foundUser = await User.findOne({ email: username });
+    //this part is where the decryption of the password happen when the 'find' was called
 
     if (foundUser && foundUser.password === password) {
-      console.log(foundUser.password);
+      // console.log(foundUser.password);
       res.render("secrets");
     } else {
       // Handle the case where the user is not found or the password is incorrect
